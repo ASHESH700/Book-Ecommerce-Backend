@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import UserTable from "./user.model.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -25,6 +26,47 @@ router.post("/user/register", async (req, res) => {
   await UserTable.create(newUser);
 
   return res.status(201).send({ message: "User is registered successfully" });
+});
+
+router.post("/user/login", async (req, res) => {
+  // Extract loginCredentials from req.body
+  const loginCredentials = req.body;
+
+  // find user with provided email
+  const user = await UserTable.findOne({ email: loginCredentials.email });
+
+  // if not user, throw error
+  if (!user) {
+    return res.status(404).send({ message: "User is not registered" });
+  }
+
+  // check for password match
+  // requirement: plain password, hashed password
+  const plainPassword = loginCredentials.password;
+  const hashedPassword = user.password;
+  const isPasswordMatch = await bcrypt.compare(plainPassword, hashedPassword);
+
+  if (!isPasswordMatch) {
+    return res.status(404).send({ message: "Invalid Credentials" });
+  }
+
+   // generate token
+    // jsonwebtoken is used to encrypt decrypt tokens
+    // payload => object inside token
+    // token is wrapping up payload using secretKey
+    const payload = { email: user.email, id: user._id };
+    const secretKey = process.env.JWT_SECRET || "defaultSecretKey"; // Use environment variables
+
+    const token = jwt.sign(payload, secretKey, {
+      expiresIn: "7d",
+    });
+
+   // Remove password before sending user details
+   const { password, ...userDetails } = user.toObject();
+
+    return res
+      .status(200)
+      .send({ message: "Login successful", accessToken: token, userDetails});
 });
 
 export { router as userController };
