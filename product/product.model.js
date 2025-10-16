@@ -24,7 +24,6 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
-  
   image: {
     type: String,
     required: false,
@@ -41,7 +40,6 @@ const productSchema = new mongoose.Schema({
     minlength: 10,
     maxlength: 1000,
   },
-  // TODO: implement seller id
   sellerId: {
     type: mongoose.ObjectId,
     ref: "User",
