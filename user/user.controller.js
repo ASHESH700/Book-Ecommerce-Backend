@@ -2,7 +2,10 @@ import express from "express";
 import bcrypt from "bcrypt";
 import UserTable from "./user.model.js";
 import jwt from "jsonwebtoken";
-import { loginCredentialSchema, registerUserSchema } from "./user.validation.js";
+import {
+  loginCredentialSchema,
+  registerUserSchema,
+} from "./user.validation.js";
 
 const router = express.Router();
 
@@ -65,7 +68,7 @@ router.post(
     // find user with provided email
     const user = await UserTable.findOne({ email: loginCredentials.email });
 
-    // if not user, throw error
+    // if there is no user, throw error
     if (!user) {
       return res.status(404).send({ message: "User is not registered" });
     }
@@ -85,6 +88,7 @@ router.post(
     // payload => object inside token
     // token is wrapping up payload using secretKey
     const payload = { email: user.email, id: user._id };
+  
     const secretKey = process.env.JWT_SECRET || "defaultSecretKey"; // Use environment variables
 
     const token = jwt.sign(payload, secretKey, {
